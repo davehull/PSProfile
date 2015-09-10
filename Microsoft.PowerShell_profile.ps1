@@ -22,6 +22,67 @@ else
 }
 
 
+function Get-TimestampUTC {
+    Get-Date (Get-Date).ToUniversalTime() -Format "yyyy-MM-ddTHH:mm:ssZ"
+}
+
+function Get-Timestamp {
+    Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+}
+
+function Get-Local2Utc {
+Param(
+    [Parameter(Mandatory=$True)]
+        [string]$time
+)
+    [datetime]::parse($time).ToUniversalTime().ToString("o")
+}
+
+function GetByteArray {
+Param(
+    [Parameter(Mandatory=$True,Position=0,ValueFromPipeLine=$True)]
+        [String]$string
+)
+    ([System.Text.Encoding]::Default.GetBytes($string) | ForEach-Object {
+        $Byte = [String]::Format("{0:d}",$_)
+        $Byte.PadLeft(3,"0")
+    })
+}
+
+
+
+function rot13 {
+# Returns a Rot13 string of the input $value
+# May not be the most efficient way to do this
+Param(
+[Parameter(Mandatory=$True,Position=0)]
+    [string]$value
+)
+    $newvalue = @()
+    for ($i = 0; $i -lt $value.length; $i++) {
+        $charnum = [int]$value[$i]
+        if ($charnum -ge [int][char]'a' -and $charnum -le [int][char]'z') {
+            if ($charnum -gt [int][char]'m') {
+                $charnum -= 13
+            } else {
+                $charnum += 13
+            }
+        } elseif ($charnum -ge [int][char]'A' -and $charnum -le [int][char]'Z') {
+            if ($charnum -gt [int][char]'M') {
+                $charnum -= 13
+            } else {
+                $charnum += 13
+            }
+        }
+        $newvalue += [char]$charnum
+    }
+    $newvalue -join ""
+}
+
+
+function Get-FileHex 
+{
+
 ##############################################################################
 #.Synopsis
 #    Display the hex dump of a file.
@@ -52,26 +113,6 @@ else
 #   Legal: Script provided "AS IS" without warranties or guarantees of any
 #          kind.  USE AT YOUR OWN RISK.  Public domain.  No rights reserved.
 ##############################################################################
-
-function Get-FileHex 
-{
-    ################################################################
-    #.Synopsis
-    #    Display the hex dump of a file.
-    #.Parameter Path
-    #    Path to file as a string or as a System.IO.FileInfo object;
-    #    object can be piped into the function, string cannot.
-    #.Parameter Width
-    #    Number of hex bytes shown per line (default = 16).
-    #.Parameter Count
-    #    Number of bytes in the file to process (default = all).
-    #.Parameter PlaceHolder
-    #    What to print when byte is not a character (default= '.' ).
-    #.Parameter NoOffset
-    #    Switch to suppress offset line numbers in output (left).
-    #.Parameter NoText
-    #    Switch to suppress text mapping of bytes in output (right).
-    ################################################################
     [CmdletBinding()] Param 
     (
         [Parameter(Mandatory = $True, ValueFromPipelineByPropertyName = $True)]
